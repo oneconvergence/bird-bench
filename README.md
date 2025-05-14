@@ -1,61 +1,5 @@
 # BIRD-SQL Mini-Dev 
 
-## Quick Setup for Custom LLM API
-
-To run this repo with a custom LLM API endpoint, follow these steps:
-
-1. **Download the Mini-Dev dataset**:
-   - Download from: https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip
-   - Extract it to the `mini_dev_data` directory in the project root
-
-2. **Set up the environment**:
-   ```bash
-   conda create -n BIRD python=3.11.5
-   conda activate BIRD
-   pip install -r requirements.txt
-   ```
-
-3. **Create necessary directories**:
-   ```bash
-   mkdir -p llm/run/exp_result/sql_output_kg
-   mkdir -p evaluation/eval_result
-   ```
-
-4. **Configure your API settings**:
-   - Open `llm/run/run_gpt.sh` and update:
-     ```bash
-     YOUR_API_KEY='your-api-key'  # Replace with your API key
-     engine='your-model-name'     # Replace with your model name
-     sql_dialect='SQLite'         # Or 'MySQL', 'PostgreSQL'
-     ```
-
-5. **Modify the API endpoint**:
-   - Open `llm/src/gpt_request.py` and update:
-     ```python
-     api_base = "https://your-api-base.com"
-     custom_api_base = "https://your-api-base.com/your-model/v1"
-     ```
-   - Ensure the `init_client` function is properly configured for your API
-
-6. **Update evaluation paths**:
-   - Open `evaluation/run_evaluation.sh` and update:
-     ```bash
-     db_root_path='../llm/mini_dev_data/minidev/MINIDEV/dev_databases/'
-     predicted_sql_path='../llm/run/exp_result/sql_output_kg/predict_mini_dev_your-model_SQLite.json'
-     ```
-   - Update `diff_json_path` and `ground_truth_path` to point to your dataset files
-
-7. **Run the scripts**:
-   ```bash
-   # Generate SQL queries
-   cd llm/run
-   bash run_gpt.sh
-   
-   # Evaluate results
-   cd ../../evaluation
-   bash run_evaluation.sh
-   ```
-
 <p align="center">
   <img src="materials/bird_circle_main.png" style="width: 30%; min-width: 100px; display: block; margin: auto;">
 </p>
@@ -119,6 +63,117 @@ Below are some key statistics of the mini-dev dataset:
 - **Comparison Keywords** •= •> •< •>= •<= •!=.
 - **Computing Keywords** •- •+ •* •/.
 
+## Quick Start Guide
+
+### 1. Clone the Repository and Install Dependencies
+
+```bash
+# Clone the repository
+git clone https://github.com/shivaoc/mini_dev.git
+cd mini_dev
+
+# Create and activate a conda environment
+conda create -n BIRD python=3.11.5
+conda activate BIRD
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Download and Set Up the Dataset
+
+1. Download the Mini-Dev dataset from [here](https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip)
+2. Extract the dataset and place it in the correct location:
+
+```bash
+# Create the necessary directory
+mkdir -p llm/mini_dev_data
+
+# Extract the dataset to this location
+unzip minidev.zip -d llm/mini_dev_data/
+```
+
+Your directory structure should look like this:
+```
+mini_dev/
+├── llm/
+│   ├── mini_dev_data/
+│   │   ├── minidev/
+│   │   │   ├── MINIDEV/
+│   │   │   │   ├── dev_databases/
+│   │   │   │   ├── mini_dev_sqlite.json
+│   │   │   │   ├── mini_dev_sqlite_gold.sql
+│   │   │   │   ├── mini_dev_mysql.json
+│   │   │   │   ├── mini_dev_mysql_gold.sql
+│   │   │   │   ├── mini_dev_postgresql.json
+│   │   │   │   └── mini_dev_postgresql_gold.sql
+│   ├── run/
+│   │   └── run_gpt.sh
+│   └── src/
+│       └── gpt_request.py
+├── evaluation/
+│   └── run_evaluation.sh
+├── requirements.txt
+└── README.md
+```
+
+### 3. Configure API Settings
+
+Edit the `llm/run/run_gpt.sh` file to set your API key and model name:
+
+```bash
+# Replace with your API key
+YOUR_API_KEY='**YOUR_API_KEY_HERE**'
+
+# Model to use - replace with your model name  
+engine='your-model-name'
+```
+
+### 4. Run the Experiments
+
+```bash
+# Execute the LLM inference to generate SQL queries
+cd llm/run
+chmod +x run_gpt.sh
+./run_gpt.sh
+
+# After the inference is complete, run the evaluation
+cd ../../evaluation
+chmod +x run_evaluation.sh
+./run_evaluation.sh
+```
+
+### Using Custom API Endpoints
+
+The code supports using custom API endpoints for LLM inference. To use a custom endpoint:
+
+1. Edit the `run_gpt.sh` script to set your API key and model name:
+   ```bash
+   YOUR_API_KEY='**YOUR_API_KEY_HERE**'
+   engine='your-model-name'
+   ```
+
+2. The code automatically formats the API base URL. For example:
+   ```
+   https://your-endpoint.com/model-name/v1
+   ```
+
+3. You can test your endpoint with a simple curl command:
+   ```bash
+   curl -k -X POST "https://your-endpoint.com/model-name/v1/chat/completions" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer **YOUR_API_KEY_HERE**" \
+     -d '{
+       "model": "model-name",
+       "messages": [
+         {
+           "role": "user",
+           "content": "which model you are."
+         }
+       ]
+   }'
+   ```
+
 ## Dataset Introduction
 
 The dataset contains the main following resources:
@@ -181,71 +236,38 @@ psql -U USERNAME -d BIRD -f BIRD_dev.sql
 ```
 5. Examples that how to run mysql query in the Python (with Psycopg) can be find in the  [`examples/postgresql_example.ipynb`](./examples/postgresql_example.ipynb) file.
 
+## Troubleshooting
 
+### Common Issues
 
+1. **API Connection Error**: If you receive a 404 or connection error, verify:
+   - Your API key is correct
+   - The model name is correctly specified
+   - The API base URL format is correct
 
-## In-Context Learning (ICL):
-
-### Environment Setup:
-
-First, you need to install the requirements in your Python environment:
-
-```bash
-conda create -n BIRD python=3.11.5
-conda activate BIRD
-pip install -r requirements.txt
-```
-
-### Setup for Custom LLM API
-
-To use your own LLM API instead of Azure OpenAI:
-
-1. Modify the API configuration in `llm/src/gpt_request.py`:
-   ```python
-   api_base = "https://your-custom-api-base.com"
-   custom_api_base = "https://your-custom-api-base.com/your-model/v1"
+2. **Package Compatibility**: If you encounter package conflicts:
+   ```bash
+   # Create a fresh environment
+   conda create -n BIRD_NEW python=3.11.5 -y
+   conda activate BIRD_NEW
+   pip install -r requirements.txt
    ```
 
-2. Ensure you're using the correct client initialization method:
-   - For OpenAI-compatible APIs, use the `OpenAI` client
-   - Update the base URL and API key accordingly
-
-### Collect results
-
-Before running:
-1. Make sure you have downloaded and extracted the dataset to `mini_dev_data`
-2. Set up the correct paths in `llm/run/run_gpt.sh`:
-   - Check `eval_path` points to your dataset JSON file
-   - Verify `db_root_path` points to your database directory
-   - Set your API key in `YOUR_API_KEY`
-   - Configure the output directory in `data_output_path` and `data_kg_output_path`
-
-Run the script:
-
-```bash
-cd ./llm/run
-bash run_gpt.sh
-```
-
+3. **Missing Dataset Files**: If you receive file not found errors:
+   - Verify that the dataset is extracted to the correct location
+   - Check that the paths in scripts match your actual directory structure
 
 ## Evaluation:
 
 ### Execution (EX) Evaluation:
 
-Please post-process your collected results as the format: SQL and its `db_id`, which is splitted by `'\t----- bird -----\t'`. The examples are shown in the [`./llm/exp_result/turbo_output/predict_mini_dev_gpt-4-turbo_cot_SQLite.json`](./llm/exp_result/turbo_output/predict_mini_dev_gpt-4-turbo_cot_SQLite.json). 
-
-Before running evaluation:
-1. Make sure the output directory exists: `mkdir -p evaluation/eval_result`
-2. Update paths in `evaluation/run_evaluation.sh` to match your directory structure:
-   - Set `db_root_path` to point to your database directory
-   - Update `predicted_sql_path` to point to the output file from your model
-   - Adjust `diff_json_path` and `ground_truth_path` to the correct paths for your dataset
-
-Then you could evaluate the results by the following command line:
+Please post-process your collected results as the format: SQL and its `db_id`, which is splitted by `'\t----- bird -----\t'`. The examples are shown in the [`./llm/exp_result/turbo_output/predict_mini_dev_gpt-4-turbo_cot_SQLite.json`](./llm/exp_result/turbo_output/predict_mini_dev_gpt-4-turbo_cot_SQLite.json). Put the ground-truth sql file in the [`./data/`](./data/). And you may need to design a ChatGPT tag by your own.
+The main file for ex evaluation is located at [`./llm/src/evaluation_ex.py`](./llm/src/evaluation_ex.py). \
+Then you could evaluate the results by the following command line :
 
 ```bash
-cd ./evaluation/
-sh ./run_evaluation.sh
+cd ./llm/
+sh ./run/run_evaluation.sh
 ```
 
 ### Reward-based Valid Efficiency Score (R-VES):

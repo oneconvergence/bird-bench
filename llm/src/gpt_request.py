@@ -13,8 +13,7 @@ from prompt import generate_combined_prompts_one
 
 """openai configure"""
 api_version = "2024-02-01"
-api_base = "https://your-api-base-url.com"
-custom_api_base = "https://your-api-base-url.com/your-model-name/v1"
+api_base = "https://layercake-poc1.inf7in3.com"
 
 
 def new_directory(path):
@@ -30,7 +29,6 @@ def connect_gpt(engine, prompt, max_tokens, temperature, stop, client):
     for i in range(MAX_API_RETRY):
         time.sleep(2)
         try:
-
             if engine == "gpt-35-turbo-instruct":
                 result = client.completions.create(
                     model="gpt-3.5-turbo-instruct",
@@ -91,20 +89,18 @@ def generate_sql_file(sql_lst, output_path=None):
 
 def init_client(api_key, api_version, engine):
     """
-    Initialize the OpenAI client for a worker.
+    Initialize the OpenAI client with custom base URL support.
     """
+    model_endpoint = f"{api_base}/{engine}/v1" 
+    # Create client with only the required parameters
     return OpenAI(
-            api_key=api_key,
-            base_url=custom_api_base
-        )
+        api_key=api_key,
+        base_url=model_endpoint
+    )
 
 
 def post_process_response(response, db_path):
-    if isinstance(response, str):
-        sql = response
-    else:
-        # Handle different response structures based on model type
-        sql = response.choices[0].message.content
+    sql = response if isinstance(response, str) else response.choices[0].message.content
     db_id = db_path.split("/")[-1].split(".sqlite")[0]
     sql = f"{sql}\t----- bird -----\t{db_id}"
     return sql
