@@ -14,12 +14,22 @@ engine_name=$(echo "$engine_line" | cut -d'=' -f2 | tr -d "'" | tr -d '"')
 sql_dialect_line=$(grep "sql_dialect=" ../llm/run/run_gpt.sh)
 sql_dialect=$(echo "$sql_dialect_line" | cut -d'=' -f2 | tr -d "'" | tr -d '"')
 
+# Get chain of thought setting
+cot_line=$(grep "cot=" ../llm/run/run_gpt.sh)
+cot=$(echo "$cot_line" | cut -d'=' -f2 | tr -d "'" | tr -d '"')
+
 echo "Looking for prediction file from model: $engine_name with dialect: $sql_dialect"
 
-# Use a specific prediction file for gpt-4-turbo for SQLite dialect
-predicted_sql_path="../llm/exp_result/sql_output_kg/predict_mini_dev_gpt-4-turbo_sqlite.json"
-sql_dialect="SQLite"
+# Determine correct file pattern based on chain of thought setting
+cot_suffix=""
+if [ "$cot" == "True" ]; then
+  cot_suffix="_cot"
+fi
 
+# Use the correct path format with proper case for SQL dialect
+predicted_sql_path="../llm/run/exp_result/sql_output_kg/predict_mini_dev_${engine_name}${cot_suffix}_${sql_dialect}.json"
+
+# Convert SQL dialect to proper case for display
 echo "Using prediction file: $predicted_sql_path"
 echo "Using SQL dialect: $sql_dialect"
 
@@ -60,7 +70,7 @@ if [ ! -f "$predicted_sql_path" ]; then
   echo "ERROR: Predicted SQL file not found at: $predicted_sql_path"
   echo "Please check if the file exists and the path is correct"
   echo "Available prediction files:"
-  find ../llm/exp_result/sql_output_kg -name "predict_mini_dev_*.json" | sort
+  find ../llm/run/exp_result/sql_output_kg -name "predict_mini_dev_*.json" | sort
   exit 1
 fi
 

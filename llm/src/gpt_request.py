@@ -14,12 +14,13 @@ from prompt import generate_combined_prompts_one
 """openai configure"""
 api_version = "2024-02-01"
 # Base API URL without model name or version path
-# IMPORTANT: Replace this with your API endpoint base URL 
+# IMPORTANT: Configure this via the API_BASE environment variable if needed
 # Examples:
 # - For OpenAI: api_base = "https://api.openai.com"
-# - For Azure OpenAI: api_base = "https://api.openai.com"
-# - For custom LLM endpoints: api_base = "https://api.openai.com"
-api_base = "https://api.openai.com"
+# - For Azure OpenAI: api_base = "https://your-resource-name.openai.azure.com"
+# - For custom LLM endpoints: api_base = "https://your-endpoint.com"
+api_base = os.environ.get("API_BASE", "https://api.openai.com")
+
 def new_directory(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -95,27 +96,39 @@ def init_client(api_key, api_version, engine):
     """
     Initialize the OpenAI client with custom base URL support.
     
-    This follows OpenAI-compatible API format:
-    https://your-endpoint.com/model-name/v1
+    Supports three URL formats:
+    1. Standard OpenAI format (default): https://api.openai.com/v1
+    2. Azure OpenAI format: https://your-resource.openai.azure.com/openai/deployments/{model_name}
+    3. Custom format: https://your-endpoint.com/{model_name}/v1
     
-    Where:
-    - your-endpoint.com is the base URL (defined by api_base variable)
-    - model-name is specified in the engine parameter
-    - v1 is the API version path
+    The format is determined by the API_BASE_FORMAT environment variable:
+    - "openai" (default): Standard OpenAI format
+    - "azure": Azure OpenAI format
+    - "custom": Custom endpoint format with model in path
     
-    NOTE: Different API providers may use different URL formats.
-    If your requests are failing, check with your provider for
-    the correct URL structure.
+    You can override the base URL with the API_BASE environment variable.
     """
-    # Construct URL in format: https://your-endpoint.com/model-name/v1
-    model_endpoint = f"{api_base}/{engine}/v1" 
-    print(f"Connecting to API endpoint: {model_endpoint}")
+    api_format = os.environ.get("API_BASE_FORMAT", "custom")
     
-    # Create client with only the required parameters
-    return OpenAI(
+    if api_format == "openai":
+        # Standard OpenAI format
+        client = OpenAI(api_key=api_key, base_url=f"{api_base}/v1")
+        print(f"Using OpenAI format: {api_base}/v1")
+    elif api_format == "azure":
+        # Azure OpenAI format
+        client = OpenAI(
             api_key=api_key,
-        base_url=model_endpoint
+            base_url=f"{api_base}/openai/deployments/{engine}",
+            api_version=api_version
         )
+        print(f"Using Azure format: {api_base}/openai/deployments/{engine}")
+    else:
+        # Custom format with model in path
+        base_url = f"{api_base}/{engine}/v1"
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        print(f"Using custom format: {base_url}")
+    
+    return client
 
 
 def post_process_response(response, db_path):
