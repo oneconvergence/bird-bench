@@ -13,6 +13,7 @@ from prompt import generate_combined_prompts_one
 
 """openai configure"""
 api_version = "2024-02-01"
+# Base API URL without model name or version path
 api_base = "https://layercake-poc1.inf7in3.com"
 
 
@@ -90,8 +91,19 @@ def generate_sql_file(sql_lst, output_path=None):
 def init_client(api_key, api_version, engine):
     """
     Initialize the OpenAI client with custom base URL support.
+    
+    This follows OpenAI-compatible API format:
+    https://your-endpoint.com/model-name/v1
+    
+    Where:
+    - your-endpoint.com is the base URL
+    - model-name is specified in the engine parameter
+    - v1 is the API version path
     """
+    # Construct URL in format: https://your-endpoint.com/model-name/v1
     model_endpoint = f"{api_base}/{engine}/v1" 
+    print(f"Connecting to API endpoint: {model_endpoint}")
+    
     # Create client with only the required parameters
     return OpenAI(
         api_key=api_key,

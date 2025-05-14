@@ -143,28 +143,27 @@ chmod +x run_evaluation.sh
 ./run_evaluation.sh
 ```
 
-### Using Custom API Endpoints
+### Using Custom LLM Models with OpenAI-Compatible APIs
 
-The code supports using custom API endpoints for LLM inference. To use a custom endpoint:
+This codebase is designed to work with any LLM that offers an OpenAI-compatible API interface. This includes:
 
-1. Edit the `run_gpt.sh` script to set your API key and model name:
+1. **OpenAI-Compatible Models**: You can use any model that exposes the standard OpenAI API format, whether it's:
+   - Self-hosted open-source models (like LLaMA, Mistral, Falcon)
+   - Custom fine-tuned models
+   - Alternative LLM providers with OpenAI-compatible endpoints
+
+2. **No Code Changes Required**: The code automatically formats API requests and handles responses following the OpenAI standard, so your model needs to support:
+   - Chat completion format with messages array
+   - Temperature and max_tokens parameters
+   - Standard response format with choices and content
+
+3. **Testing Your Endpoint**: You can verify your endpoint compatibility with:
    ```bash
-   YOUR_API_KEY='**YOUR_API_KEY_HERE**'
-   engine='your-model-name'
-   ```
-
-2. The code automatically formats the API base URL. For example:
-   ```
-   https://your-endpoint.com/model-name/v1
-   ```
-
-3. You can test your endpoint with a simple curl command:
-   ```bash
-   curl -k -X POST "https://your-endpoint.com/model-name/v1/chat/completions" \
+   curl -k -X POST "https://your-endpoint.com/your-model-name/v1/chat/completions" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer **YOUR_API_KEY_HERE**" \
      -d '{
-       "model": "model-name",
+       "model": "your-model-name",
        "messages": [
          {
            "role": "user",
@@ -173,6 +172,14 @@ The code supports using custom API endpoints for LLM inference. To use a custom 
        ]
    }'
    ```
+
+4. **URL Format**: The code automatically constructs the API URL in this format:
+   ```
+   https://your-endpoint.com/your-model-name/v1
+   ```
+   Where:
+   - `your-endpoint.com` is your API base URL defined in the code
+   - `your-model-name` is the model name from the `engine` parameter in run_gpt.sh
 
 ## Dataset Introduction
 
@@ -243,7 +250,8 @@ psql -U USERNAME -d BIRD -f BIRD_dev.sql
 1. **API Connection Error**: If you receive a 404 or connection error, verify:
    - Your API key is correct
    - The model name is correctly specified
-   - The API base URL format is correct
+   - The API base URL format is correct for your provider
+   - Your model endpoint follows the OpenAI API format
 
 2. **Package Compatibility**: If you encounter package conflicts:
    ```bash

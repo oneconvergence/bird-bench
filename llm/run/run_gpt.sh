@@ -5,11 +5,13 @@ use_knowledge='True'
 mode='mini_dev' # dev, train, mini_dev
 cot='True'
 
-# Replace with your API key
+# Replace with your API key - must have access to the model specified below
 YOUR_API_KEY='**YOUR_API_KEY_HERE**'
 
-# Model to use - replace with your model name
-engine='inf-2-0-32b-sql'
+# Model name - this is used to construct the API URL in format:
+# https://your-endpoint.com/MODEL_NAME/v1
+# The model name should match what your API provider expects
+engine='your-model-name'
 
 # Choose the number of threads to run in parallel, 1 for single thread
 num_threads=1
@@ -27,7 +29,7 @@ data_kg_output_path='./exp_result/sql_output_kg/'
 mkdir -p ${data_output_path}
 mkdir -p ${data_kg_output_path}
 
-echo "generate $engine batch, run in $num_threads threads, with knowledge: $use_knowledge, with chain of thought: $cot"
+echo "Generate SQL with model: $engine, threads: $num_threads, knowledge: $use_knowledge, chain of thought: $cot"
 python3 -u ./../src/gpt_request.py \
   --db_root_path ${db_root_path} \
   --api_key ${YOUR_API_KEY} \
