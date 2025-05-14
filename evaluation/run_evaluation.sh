@@ -1,18 +1,27 @@
+#!/bin/bash
+
 # DO NOT CHANGE THIS
 db_root_path='../llm/mini_dev_data/minidev/MINIDEV/dev_databases/'
 num_cpus=16
 meta_time_out=30.0
 # DO NOT CHANGE THIS
 
-# ************************* #
-# Path to your predicted SQL file - update this with your output file path
-predicted_sql_path='../llm/exp_result/sql_output_kg/predict_mini_dev_**YOUR_MODEL_NAME**_cot_SQLite.json'
-# predicted_sql_path='../llm/exp_result/sql_output_kg/predict_mini_dev_**YOUR_MODEL_NAME**_cot_PostgreSQL.json'
-# predicted_sql_path='../llm/exp_result/sql_output_kg/predict_mini_dev_**YOUR_MODEL_NAME**_cot_MySQL.json'
+# Get the engine name from run_gpt.sh
+engine_line=$(grep "engine=" ../llm/run/run_gpt.sh)
+engine_name=$(echo "$engine_line" | cut -d'=' -f2 | tr -d "'" | tr -d '"')
 
-# Choose the SQL dialect you used for generation
-sql_dialect="SQLite" # ONLY Modify this - options: "SQLite", "PostgreSQL", "MySQL"
-# ************************* #
+# Choose the SQL dialect from run_gpt.sh or use default
+sql_dialect_line=$(grep "sql_dialect=" ../llm/run/run_gpt.sh)
+sql_dialect=$(echo "$sql_dialect_line" | cut -d'=' -f2 | tr -d "'" | tr -d '"')
+
+echo "Looking for prediction file from model: $engine_name with dialect: $sql_dialect"
+
+# Use a specific prediction file for gpt-4-turbo for SQLite dialect
+predicted_sql_path="../llm/exp_result/sql_output_kg/predict_mini_dev_gpt-4-turbo_sqlite.json"
+sql_dialect="SQLite"
+
+echo "Using prediction file: $predicted_sql_path"
+echo "Using SQL dialect: $sql_dialect"
 
 # DO NOT CHANGE THIS
 # Extract the base filename without extension
@@ -44,24 +53,38 @@ esac
 # Output the set paths
 echo "Differential JSON Path: $diff_json_path"
 echo "Ground Truth Path: $ground_truth_path"
+echo "Predicted SQL Path: $predicted_sql_path"
 
+# Check if prediction file exists
+if [ ! -f "$predicted_sql_path" ]; then
+  echo "ERROR: Predicted SQL file not found at: $predicted_sql_path"
+  echo "Please check if the file exists and the path is correct"
+  echo "Available prediction files:"
+  find ../llm/exp_result/sql_output_kg -name "predict_mini_dev_*.json" | sort
+  exit 1
+fi
 
+# Check that the JSON file can be parsed
+if ! python3 -c "import json; json.load(open('$predicted_sql_path'))" &>/dev/null; then
+  echo "ERROR: The prediction file exists but is not valid JSON"
+  echo "This suggests that the API calls might have failed or the script was interrupted"
+  echo "Please check the file contents and re-run the inference script if needed"
+  exit 1
+fi
 
-
-echo "starting to compare with knowledge for ex, sql_dialect: ${sql_dialect}"
-python3 -u ./evaluation_ex.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path}  \
+echo "Starting to compare with knowledge for ex, sql_dialect: ${sql_dialect}"
+python3 -u ./evaluation_ex.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path} \
 --ground_truth_path ${ground_truth_path} --num_cpus ${num_cpus} --output_log_path ${output_log_path} \
---diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out}  --sql_dialect ${sql_dialect}
+--diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out} --sql_dialect ${sql_dialect}
 
 
+echo "Starting to compare with knowledge for R-VES, sql_dialect: ${sql_dialect}"
+python3 -u ./evaluation_ves.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path} \
+--ground_truth_path ${ground_truth_path} --num_cpus ${num_cpus} --output_log_path ${output_log_path} \
+--diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out} --sql_dialect ${sql_dialect}
 
-# echo "starting to compare with knowledge for R-VES, sql_dialect: ${sql_dialect}"
-# python3 -u ./evaluation_ves.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path}  \
-# --ground_truth_path ${ground_truth_path} --num_cpus ${num_cpus}  --output_log_path ${output_log_path} \
-# --diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out}  --sql_dialect ${sql_dialect}
 
-
-# echo "starting to compare with knowledge for soft-f1, sql_dialect: ${sql_dialect}"
-# python3 -u ./evaluation_f1.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path}  \
-# --ground_truth_path ${ground_truth_path} --num_cpus ${num_cpus}  --output_log_path ${output_log_path} \
-# --diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out}   --sql_dialect ${sql_dialect}
+echo "Starting to compare with knowledge for soft-f1, sql_dialect: ${sql_dialect}"
+python3 -u ./evaluation_f1.py --db_root_path ${db_root_path} --predicted_sql_path ${predicted_sql_path} \
+--ground_truth_path ${ground_truth_path} --num_cpus ${num_cpus} --output_log_path ${output_log_path} \
+--diff_json_path ${diff_json_path} --meta_time_out ${meta_time_out} --sql_dialect ${sql_dialect}

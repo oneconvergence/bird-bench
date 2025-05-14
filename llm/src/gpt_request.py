@@ -14,9 +14,12 @@ from prompt import generate_combined_prompts_one
 """openai configure"""
 api_version = "2024-02-01"
 # Base API URL without model name or version path
-api_base = "https://layercake-poc1.inf7in3.com"
-
-
+# IMPORTANT: Replace this with your API endpoint base URL 
+# Examples:
+# - For OpenAI: api_base = "https://api.openai.com"
+# - For Azure OpenAI: api_base = "https://api.openai.com"
+# - For custom LLM endpoints: api_base = "https://api.openai.com"
+api_base = "https://api.openai.com"
 def new_directory(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -96,9 +99,13 @@ def init_client(api_key, api_version, engine):
     https://your-endpoint.com/model-name/v1
     
     Where:
-    - your-endpoint.com is the base URL
+    - your-endpoint.com is the base URL (defined by api_base variable)
     - model-name is specified in the engine parameter
     - v1 is the API version path
+    
+    NOTE: Different API providers may use different URL formats.
+    If your requests are failing, check with your provider for
+    the correct URL structure.
     """
     # Construct URL in format: https://your-endpoint.com/model-name/v1
     model_endpoint = f"{api_base}/{engine}/v1" 
@@ -106,9 +113,9 @@ def init_client(api_key, api_version, engine):
     
     # Create client with only the required parameters
     return OpenAI(
-        api_key=api_key,
+            api_key=api_key,
         base_url=model_endpoint
-    )
+        )
 
 
 def post_process_response(response, db_path):

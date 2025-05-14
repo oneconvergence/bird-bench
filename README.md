@@ -71,10 +71,29 @@ Below are some key statistics of the mini-dev dataset:
 # Clone the repository
 git clone https://github.com/shivaoc/mini_dev.git
 cd mini_dev
+```
 
+You can set up the environment using either Conda or Python's virtualenv:
+
+#### Option 1: Using Conda
+```bash
 # Create and activate a conda environment
 conda create -n BIRD python=3.11.5
 conda activate BIRD
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+#### Option 2: Using virtualenv
+```bash
+# Create a virtual environment
+python -m venv birdenv
+
+# Activate the virtual environment
+source ./birdenv/bin/activate  # On Linux/Mac
+# OR
+.\birdenv\Scripts\activate     # On Windows
 
 # Install dependencies
 pip install -r requirements.txt
