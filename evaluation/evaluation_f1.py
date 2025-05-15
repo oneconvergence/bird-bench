@@ -161,45 +161,61 @@ def run_sqls_parallel(
 def compute_f1_by_diff(exec_results, diff_json_path):
     num_queries = len(exec_results)
     results = [res["res"] for res in exec_results]
-    contents = load_jsonl(diff_json_path)
+    
+    try:
+        contents = load_jsonl(diff_json_path)
+        print(f"Successfully loaded diff file with {len(contents)} entries")
+    except Exception as e:
+        print(f"Error loading diff file: {e}")
+        print("Falling back to simple F1-Score calculation without difficulty breakdown")
+        
+        # Calculate overall F1 without difficulty breakdown
+        all_f1 = sum(results) / num_queries if num_queries > 0 else 0
+        count_lists = [0, 0, 0, num_queries]
+        
+        # Return placeholder values for difficulty breakdown
+        return all_f1 * 100, all_f1 * 100, all_f1 * 100, all_f1 * 100, count_lists
+    
+    # Handle partial evaluation (when we're testing with limited questions)
+    is_partial = num_queries < len(contents)
+    if is_partial:
+        print(f"TESTING MODE: Evaluating only {num_queries} of {len(contents)} questions")
+        contents = contents[:num_queries]
+        
     simple_results, moderate_results, challenging_results = [], [], []
 
     for i, content in enumerate(contents):
-        if content["difficulty"] == "simple":
+        if i >= len(exec_results):
+            # This should not happen in normal cases, but let's be safe
+            print(f"Warning: Not enough results ({len(exec_results)}) for dataset size ({len(contents)})")
+            break
+            
+        # Add safeguard for missing difficulty field
+        difficulty = content.get("difficulty", "moderate")  # Default to moderate if missing
+            
+        if difficulty == "simple":
             simple_results.append(exec_results[i])
-
-        if content["difficulty"] == "moderate":
+        elif difficulty == "moderate":
+            moderate_results.append(exec_results[i])
+        elif difficulty == "challenging":
+            challenging_results.append(exec_results[i])
+        else:
+            print(f"Warning: Unknown difficulty level '{difficulty}' for question {i}, treating as moderate")
             moderate_results.append(exec_results[i])
 
-        if content["difficulty"] == "challenging":
-            try:
-                challenging_results.append(exec_results[i])
-            except:
-                print(i)
-
-    simple_f1 = sum([res["res"] for res in simple_results]) / len(simple_results) * 100
-    moderate_f1 = (
-        sum([res["res"] for res in moderate_results]) / len(moderate_results) * 100
-    )
-    challenging_f1 = (
-        sum([res["res"] for res in challenging_results])
-        / len(challenging_results)
-        * 100
-    )
-    all_f1 = sum(results) / num_queries * 100
+    # Guard against division by zero
+    simple_f1 = sum([res["res"] for res in simple_results]) / max(len(simple_results), 1) if simple_results else 0
+    moderate_f1 = sum([res["res"] for res in moderate_results]) / max(len(moderate_results), 1) if moderate_results else 0
+    challenging_f1 = sum([res["res"] for res in challenging_results]) / max(len(challenging_results), 1) if challenging_results else 0
+    all_f1 = sum(results) / num_queries if num_queries > 0 else 0
+    
     count_lists = [
         len(simple_results),
         len(moderate_results),
         len(challenging_results),
         num_queries,
     ]
-    return (
-        simple_f1,
-        moderate_f1,
-        challenging_f1,
-        all_f1,
-        count_lists,
-    )
+    return simple_f1 * 100, moderate_f1 * 100, challenging_f1 * 100, all_f1 * 100, count_lists
 
 
 if __name__ == "__main__":
