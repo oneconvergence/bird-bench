@@ -26,420 +26,306 @@
 
 
 ## Overview
-Here, we provide a Lite version of developtment dataset: **Mini-Dev**. This mini-dev dataset is designed to facilitate efficient and cost-effective development cycles, especially for testing and refining SQL query generation models. This dataset results from community feedback, leading to the compilation of 500 high-quality text2sql pairs derived from 11 distinct databases in a development environment. To further enhance the practicality of the BIRD system in industry settings and support the development of text-to-SQL models, we make the Mini-Dev dataset available in both **MySQL** and **PostgreSQL**.
 
-Additionally, we introduce two new evaluation metrics for the Mini-Dev dataset: the **Reward-based Valid Efficiency Score (R-VES)** and the **Soft F1-Score**. These metrics aim to evaluate the efficiency and accuracy of text-to-SQL models, respectively. It is important to note that the both metrics, currently in their beta version, applies exclusively to the Mini-Dev dataset using baseline models.
+BIRD-SQL Mini-Dev is a lightweight dataset for evaluating LLMs on text-to-SQL tasks. It includes 500 high-quality text-to-SQL pairs from 11 databases, supporting SQLite, MySQL, and PostgreSQL dialects. The dataset helps benchmark and optimize models for SQL generation tasks.
 
-We welcome contributions and suggestions for enhancing these metrics, particularly regarding their integration into existing leaderboards. Please do not hesitate to contact us if you are interested in these developments or have any proposals for improvements.
+The project provides:
+- A simple framework for testing any OpenAI-compatible LLM
+- Evaluation metrics: Execution Accuracy (EX), Reward-based Valid Efficiency Score (R-VES), and Soft F1-Score
+- Setup scripts for multiple SQL dialects
+- Comprehensive testing and evaluation tools
 
+## Complete Setup Guide
 
-Below are some key statistics of the mini-dev dataset:
-
-### Difficulty Distribution
-- **Simple:** 30%
-- **Moderate:** 50%
-- **Challenging:** 20%
-
-### Database Distribution
-- **Debit Card Specializing:** 30 instances
-- **Student Club:** 48 instances
-- **Thrombosis Prediction:** 50 instances
-- **European Football 2:** 51 instances
-- **Formula 1:** 66 instances
-- **Superhero:** 52 instances
-- **Codebase Community:** 49 instances
-- **Card Games:** 52 instances
-- **Toxicology:** 40 instances
-- **California Schools:** 30 instances
-- **Financial:** 32 instances
-
-### Keywords Statistic
-
-- **Main Body Keywords** •SELECT •FROM •WHERE •AND •OR •NOT •IN •EXISTS •IS •NULL •IIF •CASE •CASE WHEN.
-- **Join Keywords** • INNER JOIN • LEFT JOIN • ON • AS.
-- **Clause Keywords** • BETWEEN • LIKE • LIMIT • ORDER BY • ASC • DESC • GROUP BY •HAVING •UNION •ALL •EXCEPT •PARTITION BY •OVER.
-- **Aggregation Keywords** • AVG • COUNT • MAX • MIN • ROUND • SUM.
-- **Scalar Keywords** • ABS • LENGTH • STRFTIME • JULIADAY • NOW • CAST • SUBSTR • INSTR.
-- **Comparison Keywords** •= •> •< •>= •<= •!=.
-- **Computing Keywords** •- •+ •* •/.
-
-## Quick Start Guide
-
-### 1. Clone the Repository and Install Dependencies
+### 1. Clone Repository
 
 ```bash
 # Clone the repository
-git clone https://github.com/shivaoc/mini_dev.git
+git clone https://github.com/yourusername/mini_dev.git
 cd mini_dev
 ```
 
-You can set up the environment using either Conda or Python's virtualenv:
+### 2. Set Up Python Environment
 
-#### Option 1: Using Conda
+#### Option A: Using Conda (Recommended)
+
 ```bash
-# Create and activate a conda environment
-conda create -n BIRD python=3.11.5
-conda activate BIRD
+# Create a new conda environment with Python 3.11
+conda create -n minidev python=3.11
+conda activate minidev
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-#### Option 2: Using virtualenv
+#### Option B: Using Virtual Environment
+
 ```bash
 # Create a virtual environment
-python -m venv birdenv
-
-# Activate the virtual environment
-source ./birdenv/bin/activate  # On Linux/Mac
+python3.11 -m venv minidev_env
+source minidev_env/bin/activate  # On Linux/macOS
 # OR
-.\birdenv\Scripts\activate     # On Windows
+minidev_env\Scripts\activate     # On Windows
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Download and Set Up the Dataset
-
-1. Download the Mini-Dev dataset from [here](https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip)
-2. Extract the dataset and place it in the correct location:
+### 3. Download and Extract Dataset
 
 ```bash
-# Create the necessary directory
+# Create directory for dataset
 mkdir -p llm/mini_dev_data
 
-# Extract the dataset to this location
+# Option A: Using wget
+wget https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip -O minidev.zip
 unzip minidev.zip -d llm/mini_dev_data/
+
+# Option B: Using curl
+curl -L https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip -o minidev.zip
+unzip minidev.zip -d llm/mini_dev_data/
+
+# Clean up zip file (optional)
+rm minidev.zip
 ```
 
-Your directory structure should look like this:
-```
-mini_dev/
-├── llm/
-│   ├── mini_dev_data/
-│   │   ├── minidev/
-│   │   │   ├── MINIDEV/
-│   │   │   │   ├── dev_databases/
-│   │   │   │   ├── mini_dev_sqlite.json
-│   │   │   │   ├── mini_dev_sqlite_gold.sql
-│   │   │   │   ├── mini_dev_mysql.json
-│   │   │   │   ├── mini_dev_mysql_gold.sql
-│   │   │   │   ├── mini_dev_postgresql.json
-│   │   │   │   └── mini_dev_postgresql_gold.sql
-│   ├── run/
-│   │   └── run_gpt.sh
-│   └── src/
-│       └── gpt_request.py
-├── evaluation/
-│   └── run_evaluation.sh
-├── requirements.txt
-└── README.md
-```
+### 4. Verify Setup
 
-### 3. Configure API Settings
-
-Edit the `llm/run/run_gpt.sh` file to set your API key and model name:
+Run the verification script to ensure everything is correctly set up:
 
 ```bash
-# Replace with your API key
-YOUR_API_KEY='**YOUR_API_KEY_HERE**'
-
-# Model to use - replace with your model name  
-engine='your-model-name'
+python check_setup.py
 ```
 
-### 4. Run the Experiments
+This script checks:
+- Python packages installation
+- Dataset availability 
+- SQL dialect configurations
+
+### 5. Configure for Custom API Endpoint
+
+#### 5.1 Configure API Base URL
+
+Edit `llm/src/gpt_request.py` to set your API base URL:
+
+```python
+# Find this line (around line 13)
+api_base = os.environ.get("API_BASE", "https://api.openai.com")
+
+# Change it to your endpoint's base URL, for example:
+api_base = os.environ.get("API_BASE", "https://your-endpoint.com")
+```
+
+#### 5.2 Configure Model and API Key
+
+Edit `llm/run/run_gpt.sh` to set your model name and API key:
 
 ```bash
-# Execute the LLM inference to generate SQL queries
+# Find these lines (around lines 10-18)
+YOUR_API_KEY='' # Add your API key here before running
+engine='inf-2-0-32b-sql' # Replace with your model name
+
+# Change them to your actual values:
+YOUR_API_KEY='your-actual-api-key'
+engine='your-model-name'  # e.g., gpt-4, claude-3-opus, etc.
+```
+
+### 6. Run Tests with SQLite (Simplest Option)
+
+SQLite is the easiest to start with since it doesn't require any database installation.
+
+```bash
+# Make scripts executable
+chmod +x llm/run/run_gpt.sh
+chmod +x evaluation/run_evaluation.sh
+
+# Run the inference step with your model
 cd llm/run
-chmod +x run_gpt.sh
 ./run_gpt.sh
 
-# After the inference is complete, run the evaluation
+# Run the evaluation
 cd ../../evaluation
-chmod +x run_evaluation.sh
 ./run_evaluation.sh
 ```
 
-### Using Custom LLM Models with OpenAI-Compatible APIs
+### 7. Check Prediction Files
 
-This codebase is designed to work with any LLM that offers an OpenAI-compatible API interface. This includes:
+After running `run_gpt.sh`, verify that prediction files are correctly created:
 
-1. **OpenAI-Compatible Models**: You can use any model that exposes the standard OpenAI API format, whether it's:
-   - Self-hosted open-source models (like LLaMA, Mistral, Falcon)
-   - Custom fine-tuned models
-   - Alternative LLM providers with OpenAI-compatible endpoints
+```bash
+# Check if prediction files exist
+ls -la llm/run/exp_result/sql_output_kg/
 
-2. **No Code Changes Required**: The code automatically formats API requests and handles responses following the OpenAI standard, so your model needs to support:
-   - Chat completion format with messages array
-   - Temperature and max_tokens parameters
-   - Standard response format with choices and content
+# The prediction file should follow this naming pattern:
+# predict_mini_dev_[MODEL-NAME]_cot_[DIALECT].json
+# For example:
+# predict_mini_dev_inf-2-0-32b-sql_cot_SQLite.json
+```
 
-3. **Testing Your Endpoint**: You can verify your endpoint compatibility with:
+Important: The evaluation script (`run_evaluation.sh`) automatically detects the model name and dialect from `run_gpt.sh` and constructs the correct path to the prediction file. If you encounter any issues with file not found errors:
+
+1. Check what path is being used in the evaluation script output:
    ```bash
-   curl -k -X POST "https://your-endpoint.com/your-model-name/v1/chat/completions" \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer **YOUR_API_KEY_HERE**" \
-     -d '{
-       "model": "your-model-name",
-       "messages": [
-         {
-           "role": "user",
-           "content": "which model you are."
-         }
-       ]
-   }'
+   # Run with verbose output
+   cd evaluation
+   ./run_evaluation.sh
+   # Look for the line: "Using prediction file: [PATH]"
    ```
 
-4. **URL Format**: The code automatically constructs the API URL in this format:
+2. If the path is incorrect, you can manually edit `run_evaluation.sh` to set the correct path:
+   ```bash
+   # Find this section in run_evaluation.sh (around line 30)
+   predicted_sql_path="$PROJECT_ROOT/llm/run/exp_result/sql_output_kg/predict_mini_dev_${engine_name}${cot_suffix}_${sql_dialect}.json"
+   
+   # You can temporarily hardcode the full path if needed:
+   # predicted_sql_path="/full/path/to/your/prediction/file.json"
    ```
-   https://your-endpoint.com/your-model-name/v1
-   ```
-   Where:
-   - `your-endpoint.com` is your API base URL defined in the code
-   - `your-model-name` is the model name from the `engine` parameter in run_gpt.sh
 
-## Dataset Introduction
+3. The most common path issues occur when:
+   - The model name in `run_gpt.sh` contains special characters or comments
+   - The file was created in a different directory than expected
+   - The chain-of-thought (cot) suffix is missing or differs from the expected format
 
-The dataset contains the main following resources:
+### 8. Alternative: All-in-One Testing Script
 
-- `database`: The database should be stored under the [`./mini_dev_data/dev_databases/`](./mini_dev_data/dev_databases/). In each database folder, it has two components:
-  - `database_description`: the csv files are manufactured to describe database schema and its values for models to explore or references.
-  - `sqlite`: The database contents in BIRD.
-> [!NOTE] 
-> You have to download the latest dev databases in order to construct database in the MySQL and PostgreSQL. If you use the SQLite version only, you can use the original dev databases.
-- `data`: Each text-to-SQL pairs with the oracle knowledge evidence is stored as a json file, i.e., `mini_dev_sqlite.json` is stored on [`./mini_dev_data/mini_dev_sqlite.json`](./mini_dev_data/mini_dev_sqlite.json). In each json file, it has three main parts:
-  - `db_id`: the names of databases
-  - `question`: the questions curated by human crowdsourcing according to database descriptions, database contents.
-  - `evidence`: the external knowledge evidence annotated by experts for assistance of models or SQL annotators.
-  - `SQL`: SQLs annotated by crowdsource referring to database descriptions, database contents, to answer the questions accurately.
-- `ground-truth SQL file`: The SQL file should be stored at [`./llm/mini_dev_data/mini_dev_sqlite_gold.sql`](./llm/mini_dev_data/mini_dev_sqlite_gold.sql).
-- `llm`: It contains source codes to convert texts to SQLs by calling APIs from LLMs, such as  `GPT35-turbo-instruct`, `gpt-35-turbo`, `gpt-4`, `gpt-4-32k`, and `gpt-4-turbo`.
+For an easier experience, you can use the all-in-one testing script:
 
-
-
-
-## Mini-Dev Dataset in MySQL and PostgreSQL
-
-
-You can locate the SQL queries within the `mini_dev_mysql.json` and `mini_dev_postgresql.json` files. These queries have been transpiled from the original SQLite versions using the sqlglot package, then refined manually and with GPT-4 Turbo. After downloading the Mini-Dev dataset, each database folder will contain .sql and command.script files. Follow the instructions below to set up the database in MySQL and PostgreSQL:
-
-### MySQL
-1. Download and install the MySQL from the official website: https://dev.mysql.com/downloads/mysql/
-2. Set the environment variables: 
-```
-export PATH=$PATH:/usr/local/mysql/bin
-```
-3. Start the MySQL server: 
-```
-sudo /usr/local/mysql/support-files/mysql.server start
-```
-4. Login to the MySQL server and create the database (password will be the one you set during the installation)
 ```bash
-mysql -u root -p
-CREATE DATABASE BIRD;
-```
-5. Construct the database by run the following command (You can find MySQL version database: `BIRD_dev.sql` in the `MINIDEV_mysql` folder):
-```bash
-mysql -u root -p BIRD < BIRD_dev.sql
-```
-6. Examples that how to run mysql query in the Python (with   pymysql) can be find in the [`examples/mysql_example.ipynb`](./examples/mysql_example.ipynb) file.
+# Edit run_all_tests.sh to set your API configuration
+nano run_all_tests.sh
 
-7. If you encounter the error: "this is incompatible with sql_mode=only_full_group_by", you can run the following command to disable the sql_mode:
-```sql
-select @@global.sql_mode;
-SET GLOBAL sql_mode='{EVERYTHING SHOW IN THE ABOVE COMMAND EXCEPT ONLY_FULL_GROUP_BY}';
+# Add your configuration:
+API_KEY="your-api-key"
+MODEL_NAME="your-model-name"
+API_BASE="https://your-endpoint.com"
+
+# Make the script executable and run it
+chmod +x run_all_tests.sh
+./run_all_tests.sh
 ```
 
-### PostgreSQL
-1. Download and install the postgresql from the official website: https://www.postgresql.org/download/ 
-2. Download the pgAdmin4 from the official website: https://www.pgadmin.org/download/ (Recommended to monitor the database)
-3. In pgADmin4/terminal create a new database called `BIRD`
-4. Construct the database by run the following command (You can find PostgreSQL version database:`BIRD_dev.sql` in the `MINIDEV_postgresql` folder):
+## Using Other SQL Dialects
+
+### MySQL Setup
+
 ```bash
-psql -U USERNAME -d BIRD -f BIRD_dev.sql
+# Install MySQL if not already installed
+# On Ubuntu/Debian:
+sudo apt-get install mysql-server
+
+# On macOS:
+brew install mysql
+
+# Setup the database
+chmod +x setup_mysql.sh
+./setup_mysql.sh
+
+# Configure for MySQL (edit run_gpt.sh)
+# Change these lines:
+sql_dialect='SQLite' → sql_dialect='MySQL'
+eval_path='./../mini_dev_data/minidev/MINIDEV/mini_dev_sqlite.json' → eval_path='./../mini_dev_data/minidev/MINIDEV/mini_dev_mysql.json'
+
+# Run tests
+cd llm/run
+./run_gpt.sh
+cd ../../evaluation
+./run_evaluation.sh
 ```
-5. Examples that how to run mysql query in the Python (with Psycopg) can be find in the  [`examples/postgresql_example.ipynb`](./examples/postgresql_example.ipynb) file.
+
+### PostgreSQL Setup
+
+```bash
+# Install PostgreSQL if not already installed
+# On Ubuntu/Debian:
+sudo apt-get install postgresql
+
+# On macOS:
+brew install postgresql
+
+# Setup the database
+chmod +x setup_postgresql.sh
+./setup_postgresql.sh
+
+# Configure for PostgreSQL (edit run_gpt.sh)
+# Change these lines:
+sql_dialect='SQLite' → sql_dialect='PostgreSQL'
+eval_path='./../mini_dev_data/minidev/MINIDEV/mini_dev_sqlite.json' → eval_path='./../mini_dev_data/minidev/MINIDEV/mini_dev_postgresql.json'
+
+# Run tests
+cd llm/run
+./run_gpt.sh
+cd ../../evaluation
+./run_evaluation.sh
+```
+
+## Understanding the Results
+
+The evaluation produces three key metrics:
+
+1. **Execution Accuracy (EX)**: Percentage of generated SQL queries that execute correctly and return the same results as ground truth.
+
+2. **Reward-based Valid Efficiency Score (R-VES)**: Measures the efficiency of generated SQL queries compared to ground truth, with rewards based on execution time ratio.
+
+3. **Soft F1-Score**: Measures the similarity between the result tables of predicted and ground truth queries, allowing for column order differences and missing values.
+
+Results are saved in the `eval_result` directory. Look for files named `predict_mini_dev_[MODEL-NAME]_cot_[DIALECT].txt`.
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues and Solutions
 
-1. **API Connection Error**: If you receive a 404 or connection error, verify:
-   - Your API key is correct
-   - The model name is correctly specified
-   - The API base URL format is correct for your provider
-   - Your model endpoint follows the OpenAI API format
-
-2. **Package Compatibility**: If you encounter package conflicts:
+1. **JSON Format Errors**: If you see errors about invalid JSON in prediction files, try:
    ```bash
-   # Create a fresh environment
-   conda create -n BIRD_NEW python=3.11.5 -y
-   conda activate BIRD_NEW
-   pip install -r requirements.txt
+   # Check file contents
+   cat llm/run/exp_result/sql_output_kg/predict_mini_dev_your-model_cot_SQLite.json
    ```
 
-3. **Missing Dataset Files**: If you receive file not found errors:
-   - Verify that the dataset is extracted to the correct location
-   - Check that the paths in scripts match your actual directory structure
+2. **Database Connection Issues**:
+   - SQLite: Make sure the database files exist in the correct path
+   - MySQL/PostgreSQL: Check credentials in evaluation/evaluation_utils.py
 
-## Evaluation:
+3. **Path Issues**: If the evaluation script can't find prediction files:
+   - Check that the paths match between run_gpt.sh output and run_evaluation.sh
+   - Use `find` to locate the files:
+   ```bash
+   find . -name "predict_mini_dev_*.json"
+   ```
 
-### Execution (EX) Evaluation:
+4. **API Connection Errors**:
+   - Verify your API key and endpoint URL
+   - Test the API connection directly:
+   ```bash
+   curl -k -X POST "https://your-endpoint.com/your-model-name/v1/chat/completions" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_API_KEY" \
+     -d '{
+       "model": "your-model-name",
+       "messages": [{"role": "user", "content": "Hello, world"}]
+     }'
+   ```
 
-Please post-process your collected results as the format: SQL and its `db_id`, which is splitted by `'\t----- bird -----\t'`. The examples are shown in the [`./llm/exp_result/turbo_output/predict_mini_dev_gpt-4-turbo_cot_SQLite.json`](./llm/exp_result/turbo_output/predict_mini_dev_gpt-4-turbo_cot_SQLite.json). Put the ground-truth sql file in the [`./data/`](./data/). And you may need to design a ChatGPT tag by your own.
-The main file for ex evaluation is located at [`./llm/src/evaluation_ex.py`](./llm/src/evaluation_ex.py). \
-Then you could evaluate the results by the following command line :
+## Folder Structure
 
-```bash
-cd ./llm/
-sh ./run/run_evaluation.sh
 ```
-
-### Reward-based Valid Efficiency Score (R-VES):
-The main file for R-VES evaluation is located at [`./llm/src/evaluation_ves.py`](./llm/src/evaluation_ves.py).
-R-VES and EX can be evaluated in the same shell, so you can eval your efficiency via:
-
-```bash
-cd ./llm/
-sh ./run/run_evaluation.sh
+mini_dev/
+├── check_setup.py               # Verifies environment setup
+├── run_all_tests.sh             # Main script to run all tests
+├── setup_mysql.sh               # MySQL database setup script
+├── setup_postgresql.sh          # PostgreSQL database setup script
+├── run_sqlite_eval.sh           # SQLite evaluation helper
+├── llm/                         # LLM inference code
+│   ├── run/                     # Scripts to run the inference
+│   │   └── run_gpt.sh           # Main inference script
+│   └── src/                     # Source code
+│       ├── gpt_request.py       # API interaction code
+│       ├── prompt.py            # Prompt templates
+│       └── table_schema.py      # Database connection settings
+├── evaluation/                  # Evaluation code
+│   └── run_evaluation.sh        # Main evaluation script
+└── requirements.txt             # Python dependencies
 ```
-(For stable R-VES, you may need to enlarge `timeout` or repeat and average results. In our test evaluation, we will enlarge `timeout` to 3 s/ex; then we repeat 5 times for VES computation, only the highest results will be reported.)
-
-In the latest version, we adjust the VES evaluation to be more stable and reliable. Instead of simply measuring the time ratio between predict and ground-truth SQLs, we now assign reward point based on the time ratio. The R-VES are calculated as follows:
-<p align="center" width="100%">
-<a><img src="materials/time_ratio_formula.png" style="width: 70%; min-width: 300px; display: block; margin: auto;"></a>
-</p>
-
-
-
-### Soft F1-Score Evaluation:
-The main file for Soft F1-Score evaluation is located at [`./llm/src/evaluation_f1.py`](./llm/src/evaluation_f1.py). Soft-F1, VES and EX can be evaluated in the same shell, so you can eval your efficiency via:
-
-```bash
-cd ./llm/
-sh ./run/run_evaluation.sh
-```
-#### Soft F1-Score:
-Alongside the update to the Mini-Dev set, we introduced a new evaluation metric—the soft F1-score. This metric is specifically designed to assess the performance of text-to-SQL models by measuring the similarity between the tables produced by predicted SQL queries and those from the ground truth. In a nutshell, the soft F1-score is a more lenient metric that reduces the impact of column order and missing values in the tables produced by predicted SQL queries.
-
-The following demonstrate how we calculate the soft F1-score. 
-
-Ground truth SQL resulted table:
-| Row  |  | |  
-|:----------:|:----------:|:----------:|
-| 1 | 'Apple' | 325 | 
-| 2  | 'Orange' |  | 
-| 3| 'Banana' | 119 |
-
-Predicted SQL resulted table:
-| Row |  | |  
-|:----------:|:----------:|:----------:|
-| 1 | 325 |'Apple' |  
-| 2  | 191 |'Orange' |  
-| 3| |'Banana' |
-
-The soft F1-score is calculated as follows:
-
-|  | Matched| Pred_only | Gold_only  |
-|----------|:----------:|:----------:|:----------:|
-| **Row 1** | 2 | 0 | 0 | 
-| **Row 2** | 1 | 1 | 0 | 
-| **Row 3** | 1 | 0 | 1 | 
-
-* tp = SUM(Matched) = 4 
-* fp = SUM(Pred_only) = 1
-* fn = SUM(Gold_only) = 1
-* Precision = tp / (tp + fp) = 4 / 5 = 0.8
-* Recall = tp / (tp + fn) = 4 / 5 = 0.8
-* F1 = 2 * Precision * Recall / (Precision + Recall) = 0.8
-
-## Baseline performance on Mini-Dev Dataset
-
-###  EX Evaluation
-|                        | SQLite | MySQL | PostgreSQL |
-|------------------------|:------:|:-----:|:----------:|
-| **mixtral-8x7b**     | 21.60  | 13.60| 12.40     |
-| **llama3-8b-instruct**          | 24.40  | 24.60 | 18.40      |
-|**phi-3-medium-128k-instruct**            | 30.60 | 25.00 | 21.60 |
-| **gpt-35-turbo-instruct** | 33.60  | 31.20 | 26.60      |
-| **gpt-35-turbo**       | 38.00  | 36.00 | 27.40      |
-| **llama3-70b-instruct**         | 40.80  | 37.00 | 29.40      |
-| **TA + gpt-35-turbo**       | 41.60  | - | -      |
-| **TA + llama3-70b-instruct**  | 42.80 | -    |-     |
-| **gpt-4-turbo**        | 45.80  | 41.00 | 36.00      |
-| **gpt-4-32k**        | 47.00  | 43.20 | 35.00       |
-| **gpt-4**        | 47.80  | 40.80 | 35.80      |
-| **TA + gpt-4-turbo**        | 58.00  | - | -      |
-| **TA + gpt-4o**        | 63.00  | - | -      |
-
-
-### R-VES Evaluation
-|                        | SQLite | MySQL | PostgreSQL |
-|------------------------|:------:|:-----:|:----------:|
-| **mixtral-8x7b**     | 20.41  | 12.99 | 14.16     |
-| **llama3-8b-instruct**          | 23.27  | 23.66 | 17.90      |
-|**phi-3-medium-128k-instruct**| 29.54 | 24.12 | 21.07 |
-| **gpt-35-turbo-instruct** | 32.28  | 30.39 | 26.14      |
-| **gpt-35-turbo**       | 37.33  | 34.94 | 26.80      |
-| **llama3-70b-instruct**         | 39.02  | 35.82 | 28.80      |
-| **TA + gpt-35-turbo**       | 40.59  | - | -      |
-| **TA + llama3-70b-instruct**  | 41.37 | -    | -      |
-| **gpt-4-turbo**        | 44.79  | 39.37 | 35.23      |
-| **gpt-4-32k**        | 45.29  | 42.79 | 34.59     |
-| **gpt-4**        | 45.91  | 39.92 | 35.24       |
-| **TA + gpt-4-turbo**        | 56.44   | - | -      |
-| **TA + gpt-4o**        | 60.86  | - | -      |
-
-
-### Soft F1-Score Evaluation
-|                        | SQLite | MySQL | PostgreSQL |
-|------------------------|:------:|:-----:|:----------:|
-| **mixtral-8x7b**     | 22.95  | 13.79 | 14.70      |
-| **llama3-8b-instruct**          | 27.87  | 27.49 | 19.35      |
-|**phi-3-medium-128k-instruct**                | 35.33 | 28.73  | 24.11  |
-| **gpt-35-turbo-instruct** | 36.34  | 33.85 | 28.30      |
-| **gpt-35-turbo**       | 41.84  | 40.75 | 30.22      |
-| **TA + gpt-35-turbo**       | 44.25  | - | -      |
-| **llama3-70b-instruct**         | 44.38  | 40.95 | 31.43      |
-| **TA + llama3-70b-instruct**  | 46.66 | -    | -      |
-| **gpt-4-turbo**        | 50.08  | 45.96 | 38.36      |
-| **gpt-4-32k**        | 51.92  | 47.38 | 39.55      |
-| **gpt-4**        | 52.69 | 45.78 | 38.96       |
-| **TA + gpt-4-turbo**        | 62.40   | - | -      |
-| **TA + gpt-4o**        | 66.97  | - | -      |
-
-### Predict SQLs
-We drop the predicted SQLs of baseline models under `./llm/exp_result/sql_output_kg/` for reference.
-
-### Time Ratio Distribution
-<p align="center" width="100%">
-<a><img src="materials/time_ratio_sqlite.png" style="width: 100%; min-width: 300px; display: block; margin: auto;"></a>
-</p>
-
-
-
-
-## Acknowledgement
-Main contributors to the Mini-Dev project: Xiaolong Li, Jinyang Li, Ge Qu, Binyuan Hui, Reynold Cheng, Chenhao Ma.
-
-We extend our sincere gratitude to the invaluable feedbacks from the open community, including github reviewers (@freiz @nnarodytska @josem7 @wbbeyourself @ronch99 @tshu-w ) and those who reached out to us via email with their valuable suggestions.
-
-For any questions, please contact us by bird.bench23@gmail.com.
-
-## My To-Do List  
-  
-- [x] Release BIRD MINI DEV
-- [x] Implement [`TA-SQL`](https://github.com/quge2023/TA-SQL) as ICL Reasoning Baseline.
-- [ ] Implement more open-source LLMs.
-- [x] Release cleaner dev.json.
-- [ ] Release cleaner train.json.
-- [ ] BIRD-SQL 2024-2025, a broad new research problem.
 
 ## Citation
-
-Please cite the repo if you think our work is helpful to you.
 
 ```
 @article{li2024can,
