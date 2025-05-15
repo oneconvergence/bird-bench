@@ -1,10 +1,13 @@
-.DS_Store
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 env/
+venv/
+birdenv/
+.env
 build/
 develop-eggs/
 dist/
@@ -26,3 +29,20 @@ llm/mini_dev_data/
 eval_result/
 *.sqlite
 *.sqlite-journal
+.api_config
+working_mysql_password.txt
+
+# Databases
+*.db
+*.sql
+
+# OS specific
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and temporary files
+*.log
+*.tmp

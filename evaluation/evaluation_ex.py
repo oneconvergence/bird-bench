@@ -69,28 +69,54 @@ def run_sqls_parallel(
 def compute_acc_by_diff(exec_results, diff_json_path):
     num_queries = len(exec_results)
     results = [res["res"] for res in exec_results]
-    contents = load_jsonl(diff_json_path)
+    
+    try:
+        contents = load_jsonl(diff_json_path)
+        print(f"Successfully loaded diff file with {len(contents)} entries")
+    except Exception as e:
+        print(f"Error loading diff file: {e}")
+        print("Falling back to simple accuracy calculation without difficulty breakdown")
+        
+        # Calculate overall accuracy without difficulty breakdown
+        all_acc = sum(results) / num_queries if num_queries > 0 else 0
+        count_lists = [0, 0, 0, num_queries]
+        
+        # Return placeholder values for difficulty breakdown
+        return (all_acc * 100, all_acc * 100, all_acc * 100, all_acc * 100, count_lists)
+    
+    # Handle partial evaluation (when we're testing with limited questions)
+    is_partial = num_queries < len(contents)
+    if is_partial:
+        print(f"TESTING MODE: Evaluating only {num_queries} of {len(contents)} questions")
+        contents = contents[:num_queries]
+
     simple_results, moderate_results, challenging_results = [], [], []
 
     for i, content in enumerate(contents):
-        if content["difficulty"] == "simple":
+        if i >= len(exec_results):
+            # This should not happen in normal cases, but let's be safe
+            print(f"Warning: Not enough results ({len(exec_results)}) for dataset size ({len(contents)})")
+            break
+        
+        # Add safeguard for missing difficulty field
+        difficulty = content.get("difficulty", "moderate")  # Default to moderate if missing
+            
+        if difficulty == "simple":
             simple_results.append(exec_results[i])
-
-        if content["difficulty"] == "moderate":
+        elif difficulty == "moderate":
+            moderate_results.append(exec_results[i])
+        elif difficulty == "challenging":
+            challenging_results.append(exec_results[i])
+        else:
+            print(f"Warning: Unknown difficulty level '{difficulty}' for question {i}, treating as moderate")
             moderate_results.append(exec_results[i])
 
-        if content["difficulty"] == "challenging":
-            try:
-                challenging_results.append(exec_results[i])
-            except:
-                print(i)
-
-    simple_acc = sum([res["res"] for res in simple_results]) / len(simple_results)
-    moderate_acc = sum([res["res"] for res in moderate_results]) / len(moderate_results)
-    challenging_acc = sum([res["res"] for res in challenging_results]) / len(
-        challenging_results
-    )
-    all_acc = sum(results) / num_queries
+    # Guard against division by zero
+    simple_acc = sum([res["res"] for res in simple_results]) / max(len(simple_results), 1) if simple_results else 0
+    moderate_acc = sum([res["res"] for res in moderate_results]) / max(len(moderate_results), 1) if moderate_results else 0 
+    challenging_acc = sum([res["res"] for res in challenging_results]) / max(len(challenging_results), 1) if challenging_results else 0
+    all_acc = sum(results) / num_queries if num_queries > 0 else 0
+    
     count_lists = [
         len(simple_results),
         len(moderate_results),
@@ -133,6 +159,13 @@ if __name__ == "__main__":
         mode="gt",
     )
 
+    # Handle case where prediction file has fewer queries than ground truth
+    if len(pred_queries) < len(gt_queries):
+        print(f"WARNING: Prediction file contains only {len(pred_queries)} queries, but ground truth has {len(gt_queries)}")
+        print(f"Will evaluate only the first {len(pred_queries)} queries")
+        gt_queries = gt_queries[:len(pred_queries)]
+        db_paths_gt = db_paths_gt[:len(pred_queries)]
+
     query_pairs = list(zip(pred_queries, gt_queries))
 
     run_sqls_parallel(
@@ -148,7 +181,7 @@ if __name__ == "__main__":
         exec_result, args.diff_json_path
     )
     score_lists = [simple_acc, moderate_acc, challenging_acc, acc] 
-    print_data(score_lists, count_lists, metric="EX",result_log_file=args.output_log_path)
+    print_data(score_lists, count_lists, metric="EX", result_log_file=args.output_log_path)
     print(
         "==========================================================================================="
     )
