@@ -7,14 +7,14 @@ cot='True'
 
 # Replace with your API key - must have access to the model specified below
 # WARNING: The script will fail if you don't replace this placeholder!
-YOUR_API_KEY='1'
+YOUR_API_KEY='' # Add your API key here before running
 
 # Model name - this is used to construct the API URL in format:
 # https://your-endpoint.com/MODEL_NAME/v1
 # The model name should match what your API provider expects
 # Examples: gpt-4-turbo, meta-llama-3-70b-instruct, mistral-large, claude-3-opus
 # WARNING: Keep the model name without spaces or special characters
-engine=''
+engine='inf-2-0-32b-sql' # Replace with your model name
 
 # Choose the number of threads to run in parallel, 1 for single thread
 num_threads=1
