@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DO NOT CHANGE THIS
-db_root_path='../llm/mini_dev_data/dev_20240627/dev_databases/'
+db_root_path='../llm/dev_data/dev_20240627/dev_databases/'
 num_cpus=16
 meta_time_out=30.0
 # DO NOT CHANGE THIS
@@ -59,8 +59,8 @@ mkdir -p "$PROJECT_ROOT/eval_result"
 
 case $sql_dialect in
   "SQLite")
-    diff_json_path="$PROJECT_ROOT/llm/mini_dev_data/dev_20240627/dev.json"
-    ground_truth_path="$PROJECT_ROOT/llm/mini_dev_data/dev_20240627/dev.sql"
+    diff_json_path="$PROJECT_ROOT/llm/dev_data/dev_20240627/dev.json"
+    ground_truth_path="$PROJECT_ROOT/llm/dev_data/dev_20240627/dev.sql"
     ;;
   *)
     echo "Invalid SQL dialect: $sql_dialect"
