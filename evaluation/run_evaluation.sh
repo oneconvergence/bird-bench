@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # DO NOT CHANGE THIS
-db_root_path='../llm/mini_dev_data/minidev/MINIDEV/dev_databases/'
+db_root_path='../llm/mini_dev_data/dev_20240627/dev_databases/'
 num_cpus=16
 meta_time_out=30.0
 # DO NOT CHANGE THIS
@@ -31,7 +31,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd )"
 
 # Use the correct path format with proper case for SQL dialect
-predicted_sql_path="$PROJECT_ROOT/llm/run/exp_result/sql_output_kg/predict_mini_dev_${engine_name}${cot_suffix}_${sql_dialect}.json"
+predicted_sql_path='../llm/run/exp_result/sql_output_kg/predict_dev_gpt-4o_cot_SQLite.json'
 
 # Check if file exists, if not try alternative paths
 if [ ! -f "$predicted_sql_path" ]; then
@@ -59,16 +59,8 @@ mkdir -p "$PROJECT_ROOT/eval_result"
 
 case $sql_dialect in
   "SQLite")
-    diff_json_path="$PROJECT_ROOT/llm/mini_dev_data/minidev/MINIDEV/mini_dev_sqlite.json"
-    ground_truth_path="$PROJECT_ROOT/llm/mini_dev_data/minidev/MINIDEV/mini_dev_sqlite_gold.sql"
-    ;;
-  "PostgreSQL")
-    diff_json_path="$PROJECT_ROOT/llm/mini_dev_data/minidev/MINIDEV/mini_dev_postgresql.json"
-    ground_truth_path="$PROJECT_ROOT/llm/mini_dev_data/minidev/MINIDEV/mini_dev_postgresql_gold.sql"
-    ;;
-  "MySQL")
-    diff_json_path="$PROJECT_ROOT/llm/mini_dev_data/minidev/MINIDEV/mini_dev_mysql.json"
-    ground_truth_path="$PROJECT_ROOT/llm/mini_dev_data/minidev/MINIDEV/mini_dev_mysql_gold.sql"
+    diff_json_path="$PROJECT_ROOT/llm/mini_dev_data/dev_20240627/dev.json"
+    ground_truth_path="$PROJECT_ROOT/llm/mini_dev_data/dev_20240627/dev.sql"
     ;;
   *)
     echo "Invalid SQL dialect: $sql_dialect"

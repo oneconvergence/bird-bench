@@ -1,6 +1,6 @@
-eval_path='./../mini_dev_data/minidev/MINIDEV/mini_dev_sqlite.json'
+eval_path="./../dev_data/dev_20240627/dev.json"
+db_root_path="./../dev_data/dev_20240627/dev_databases"
 dev_path='./output/'
-db_root_path='./../mini_dev_data/minidev/MINIDEV/dev_databases/'
 use_knowledge='True'
 mode='mini_dev' # dev, train, mini_dev
 cot='True'
