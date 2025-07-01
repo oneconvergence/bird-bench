@@ -1,5 +1,5 @@
 eval_path="./../dev_data/dev_20240627/dev.json"
-db_root_path="./../dev_data/dev_20240627/dev_databases"
+db_root_path="./../dev_data/dev_20240627/dev_databases/"
 dev_path='./output/'
 use_knowledge='True'
 mode='dev' # dev, train, mini_dev
