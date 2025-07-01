@@ -41,8 +41,8 @@ The project provides:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/mini_dev.git
-cd mini_dev
+git clone https://github.com/oneconvergence/bird-bench.git
+cd bird-bench
 ```
 
 ### 2. Set Up Python Environment
@@ -51,8 +51,8 @@ cd mini_dev
 
 ```bash
 # Create a new conda environment with Python 3.11
-conda create -n minidev python=3.11
-conda activate minidev
+conda create -n birddev python=3.11
+conda activate birddev
 
 # Install dependencies
 pip install -r requirements.txt
@@ -62,10 +62,10 @@ pip install -r requirements.txt
 
 ```bash
 # Create a virtual environment
-python3.11 -m venv minidev_env
-source minidev_env/bin/activate  # On Linux/macOS
+python3.11 -m venv birddev_env
+source birddev_env/bin/activate  # On Linux/macOS
 # OR
-minidev_env\Scripts\activate     # On Windows
+birddev_env\Scripts\activate     # On Windows
 
 # Install dependencies
 pip install -r requirements.txt
@@ -75,15 +75,15 @@ pip install -r requirements.txt
 
 ```bash
 # Create directory for dataset
-mkdir -p llm/mini_dev_data
+mkdir -p llm/dev_data
 
 # Option A: Using wget
 wget https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip -O minidev.zip
-unzip minidev.zip -d llm/mini_dev_data/
+unzip minidev.zip -d llm/dev_data/
 
 # Option B: Using curl
 curl -L https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip -o minidev.zip
-unzip minidev.zip -d llm/mini_dev_data/
+unzip minidev.zip -d llm/dev_data/
 
 # Clean up zip file (optional)
 rm minidev.zip
@@ -307,7 +307,7 @@ Results are saved in the `eval_result` directory. Look for files named `predict_
 ## Folder Structure
 
 ```
-mini_dev/
+bird-bench/
 ├── check_setup.py               # Verifies environment setup
 ├── run_all_tests.sh             # Main script to run all tests
 ├── setup_mysql.sh               # MySQL database setup script
