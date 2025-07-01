@@ -2,7 +2,7 @@ eval_path="./../dev_data/dev_20240627/dev.json"
 db_root_path="./../dev_data/dev_20240627/dev_databases"
 dev_path='./output/'
 use_knowledge='True'
-mode='mini_dev' # dev, train, mini_dev
+mode='dev' # dev, train, mini_dev
 cot='True'
 
 # Replace with your API key - must have access to the model specified below
