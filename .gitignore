@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+evaluation/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -46,3 +47,7 @@ working_mysql_password.txt
 # Logs and temporary files
 *.log
 *.tmp
+
+bird_becnch/
+llm/dev_data/
+evaluation/__pycache__/
