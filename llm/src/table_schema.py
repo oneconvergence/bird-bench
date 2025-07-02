@@ -230,7 +230,7 @@ def connect_postgresql():
     # Open database connection
     # Connect to the database
     db = psycopg2.connect(
-        "dbname=BIRD user=root host=localhost password=YOUR_PASSWORD port=5432"
+        "dbname=**** user=**** host=**** password="" port=5432"
     )
     return db
 

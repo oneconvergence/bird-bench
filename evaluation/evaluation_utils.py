@@ -71,7 +71,7 @@ def connect_postgresql():
     # Open database connection
     # Connect to the database
     db = psycopg2.connect(
-        "dbname=bird user=postgres host=localhost password=li123911 port=5432"
+         "dbname=**** user=**** host=*** password="" port=5432"
     )
     return db
 

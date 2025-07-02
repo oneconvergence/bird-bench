@@ -19,7 +19,7 @@ api_version = "2024-02-01"
 # - For OpenAI: api_base = "https://api.openai.com"
 # - For Azure OpenAI: api_base = "https://your-resource-name.openai.azure.com"
 # - For custom LLM endpoints: api_base = "https://your-endpoint.com"
-api_base = os.environ.get("API_BASE", "https://api.openai.com")
+api_base = os.environ.get("API_BASE", "https://layercake.nvda-staging2.inf7ll8.com/iai-enterprise")
 
 def new_directory(path):
     if not os.path.exists(path):

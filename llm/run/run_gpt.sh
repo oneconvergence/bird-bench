@@ -1,5 +1,5 @@
-eval_path="./../dev_data/dev_20240627/dev.json"
-db_root_path="./../dev_data/dev_20240627/dev_databases/"
+eval_path="/Users/apple/developement/bird_bench_shiva/bird-bench/llm/dev_data/db_splits/california_schools/dev_california_schools.json"
+db_root_path="./../dev_data/dev_20240627/dev_databases"
 dev_path='./output/'
 use_knowledge='True'
 mode='dev' # dev, train, mini_dev
@@ -7,7 +7,7 @@ cot='True'
 
 # Replace with your API key - must have access to the model specified below
 # WARNING: The script will fail if you don't replace this placeholder!
-YOUR_API_KEY='' # Add your API key here before running
+YOUR_API_KEY='******' # Add your API key here before running
 
 # Model name - this is used to construct the API URL in format:
 # https://your-endpoint.com/MODEL_NAME/v1
@@ -22,7 +22,7 @@ num_threads=1
 # Choose the SQL dialect to run, e.g. SQLite, MySQL, PostgreSQL
 # PLEASE NOTE: You have to setup the database information in table_schema.py 
 # if you want to run the evaluation script using MySQL or PostgreSQL
-sql_dialect='SQLite'
+sql_dialect='PostgreSQL'
 
 # For testing purposes, set this to a small number like 10
 # Set to 0 or remove to process all questions

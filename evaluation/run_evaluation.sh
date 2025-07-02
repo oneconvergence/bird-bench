@@ -31,7 +31,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd )"
 
 # Use the correct path format with proper case for SQL dialect
-predicted_sql_path='../llm/run/exp_result/sql_output_kg/predict_dev_gpt-4o_cot_SQLite.json'
+predicted_sql_path='/Users/apple/developement/bird_bench_shiva/bird-bench/llm/run/exp_result/sql_output_kg/predict_dev_inf-2-0-32b-sql_cot_PostgreSQL.json'
 
 # Check if file exists, if not try alternative paths
 if [ ! -f "$predicted_sql_path" ]; then
@@ -59,8 +59,16 @@ mkdir -p "$PROJECT_ROOT/eval_result"
 
 case $sql_dialect in
   "SQLite")
-    diff_json_path="$PROJECT_ROOT/llm/dev_data/dev_20240627/dev.json"
-    ground_truth_path="$PROJECT_ROOT/llm/dev_data/dev_20240627/dev.sql"
+    diff_json_path="../sqlite/mini_dev_sqlite.jsonl"
+    ground_truth_path="../sqlite/mini_dev_sqlite_gold.sql"
+    ;;
+  "PostgreSQL")
+    diff_json_path="/Users/apple/developement/bird_bench_shiva/bird-bench/llm/dev_data/financial_5/dev_financial.json"
+    ground_truth_path="/Users/apple/developement/bird_bench_shiva/bird-bench/llm/dev_data/financial_5/dev_financial.sql"
+    ;;
+  "MySQL")
+    diff_json_path="../mysql/mini_dev_mysql.jsonl"
+    ground_truth_path="../mysql/mini_dev_mysql_gold.sql"
     ;;
   *)
     echo "Invalid SQL dialect: $sql_dialect"
@@ -103,13 +111,13 @@ python3 -u "$SCRIPT_DIR/evaluation_ex.py" --db_root_path "${db_root_path}" --pre
 --diff_json_path "${diff_json_path}" --meta_time_out ${meta_time_out} --sql_dialect "${sql_dialect}"
 
 
-echo "Starting to compare with knowledge for R-VES, sql_dialect: ${sql_dialect}"
-python3 -u "$SCRIPT_DIR/evaluation_ves.py" --db_root_path "${db_root_path}" --predicted_sql_path "${predicted_sql_path}" \
---ground_truth_path "${ground_truth_path}" --num_cpus ${num_cpus} --output_log_path "${output_log_path}" \
---diff_json_path "${diff_json_path}" --meta_time_out ${meta_time_out} --sql_dialect "${sql_dialect}"
+# echo "Starting to compare with knowledge for R-VES, sql_dialect: ${sql_dialect}"
+# python3 -u "$SCRIPT_DIR/evaluation_ves.py" --db_root_path "${db_root_path}" --predicted_sql_path "${predicted_sql_path}" \
+# --ground_truth_path "${ground_truth_path}" --num_cpus ${num_cpus} --output_log_path "${output_log_path}" \
+# --diff_json_path "${diff_json_path}" --meta_time_out ${meta_time_out} --sql_dialect "${sql_dialect}"
 
 
-echo "Starting to compare with knowledge for soft-f1, sql_dialect: ${sql_dialect}"
-python3 -u "$SCRIPT_DIR/evaluation_f1.py" --db_root_path "${db_root_path}" --predicted_sql_path "${predicted_sql_path}" \
---ground_truth_path "${ground_truth_path}" --num_cpus ${num_cpus} --output_log_path "${output_log_path}" \
---diff_json_path "${diff_json_path}" --meta_time_out ${meta_time_out} --sql_dialect "${sql_dialect}"
+# echo "Starting to compare with knowledge for soft-f1, sql_dialect: ${sql_dialect}"
+# python3 -u "$SCRIPT_DIR/evaluation_f1.py" --db_root_path "${db_root_path}" --predicted_sql_path "${predicted_sql_path}" \
+# --ground_truth_path "${ground_truth_path}" --num_cpus ${num_cpus} --output_log_path "${output_log_path}" \
+# --diff_json_path "${diff_json_path}" --meta_time_out ${meta_time_out} --sql_dialect "${sql_dialect}"
