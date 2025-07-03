@@ -20,8 +20,8 @@ import shutil
 from collections import defaultdict
 
 # Paths
-json_path = '/Users/apple/developement/bird_bench_shiva/bird-bench/llm/dev_data/dev_20240627/dev.json'
-sql_path = '/Users/apple/developement/bird_bench_shiva/bird-bench/llm/dev_data/dev_20240627/dev.sql'
+json_path = './dev_data/dev_20240627/dev.json'
+sql_path = './dev_data/dev_20240627/dev.sql'
 out_root = './db_splits'
 
 # Load data
